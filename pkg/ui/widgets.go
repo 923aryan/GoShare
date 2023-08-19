@@ -3,6 +3,8 @@ package ui
 import (
 	// "TerminalChat/pkg/ui"
 
+	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -24,10 +26,24 @@ func UiLayout(startButton *widget.Button, MainContainer *fyne.Container) *fyne.C
 	return DeviceContainer
 }
 
-func CreateProgressBar(MainContainer *fyne.Container, onTap func()) (*fyne.Container, *widget.Button, *widget.ProgressBar) {
+func CreateProgressBar(MainContainer *fyne.Container, mainApp fyne.App, onTap func()) (*fyne.Container, *widget.Button, *widget.ProgressBar) {
 	progressBar := widget.NewProgressBar()
 	sendButton := widget.NewButton("Send File", onTap)
-	content := container.NewVBox(sendButton, progressBar)
+	sffButton := widget.NewButton("Select File", func() {
+		sendButton.Disable()
+		SelectFileWindow := mainApp.NewWindow("Select File")
+		ShowFilePickerWindow(SelectFileWindow, func() {
+			fmt.Println("reaching in callbakc")
+			SelectFileWindow.Close()
+			sendButton.Enable()
+		})
+		// SelectFileWindow.Close()
+
+	})
+
+	buttons := container.NewHBox(sendButton, sffButton)
+
+	content := container.NewVBox(buttons, progressBar)
 	return content, sendButton, progressBar
 }
 

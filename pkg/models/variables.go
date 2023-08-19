@@ -18,6 +18,7 @@ var Message string = ""
 var MessageReceived string = ""
 var ConnectionAborted = make(chan bool, 0)
 var Entry *zeroconf.ServiceEntry
+var SelectedPath string
 
 func Reset() {
 	ConnectionEstablished = false

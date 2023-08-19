@@ -2,9 +2,11 @@ package ui
 
 import (
 	"TerminalChat/pkg/models"
+	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
@@ -44,4 +46,24 @@ func ChatScreen(SendUi *fyne.Container) *fyne.Container {
 	}()
 
 	return content
+}
+
+func ShowFilePickerWindow(selctFileWindow fyne.Window, CallBack func()) {
+
+	var selectedPath string
+	btnFunc := func() {
+		dialog.ShowFileOpen(func(file fyne.URIReadCloser, err error) {
+			if err == nil && file != nil {
+				selectedPath = file.URI().Path()
+				fmt.Println("Selected file/folder path:", selectedPath)
+				models.SelectedPath = selectedPath
+				CallBack()
+			} else if err != nil {
+				dialog.ShowError(err, selctFileWindow)
+			}
+		}, selctFileWindow)
+	}
+	btn := widget.NewButton("Open File/Folder", btnFunc)
+	selctFileWindow.SetContent(container.NewCenter(btn))
+	selctFileWindow.Show()
 }

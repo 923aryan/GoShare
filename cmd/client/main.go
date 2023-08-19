@@ -32,7 +32,7 @@ func main() {
 	var sendButton *widget.Button
 	var SendUi *fyne.Container
 	var progressBar *widget.ProgressBar
-	SendUi, sendButton, progressBar = ui.CreateProgressBar(MainContainer, func() {
+	SendUi, sendButton, progressBar = ui.CreateProgressBar(MainContainer, mainApp, func() {
 		// go filetransfer.SendFile("/home/aryan/Downloads/Win11_22H2_English_x64v2.iso", progressBar, wg)
 	})
 
@@ -58,12 +58,12 @@ func main() {
 
 			ctx, cancel = context.WithCancel(context.Background())
 			wg := &sync.WaitGroup{}
-			wg.Add(3)
+			wg.Add(2)
 
 			go discovery.DiscoverServices(wg, DeviceContainer, ctx, cancel)
 			go discovery.RegisterServices(wg, DeviceContainer, ctx, cancel)
 			sendButton.OnTapped = func() {
-				go filetransfer.SendFile("/home/aryan/Downloads/Win11_22H2_English_x64v2.iso", progressBar, wg)
+				go filetransfer.SendFile(models.SelectedPath, progressBar)
 			}
 			fmt.Println("done 1st iteration")
 		}
