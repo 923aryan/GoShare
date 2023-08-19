@@ -1,8 +1,10 @@
 package main
 
 import (
+	"TerminalChat/cmd/server"
 	"TerminalChat/pkg/connections"
 	"TerminalChat/pkg/discovery"
+	"TerminalChat/pkg/filetransfer"
 	"TerminalChat/pkg/models"
 	"TerminalChat/pkg/ui"
 	"context"
@@ -13,7 +15,9 @@ import (
 	"syscall"
 	"time"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/widget"
 )
 
 func main() {
@@ -23,27 +27,47 @@ func main() {
 	mainApp := app.New()
 	myWindow := mainApp.NewWindow("Service Discovery")
 	startButton, MainContainer := ui.MainWindow()
+
 	DeviceContainer := ui.UiLayout(startButton, MainContainer)
-	Tabs := ui.CreateTabs(MainContainer)
+	var sendButton *widget.Button
+	var SendUi *fyne.Container
+	var progressBar *widget.ProgressBar
+	SendUi, sendButton, progressBar = ui.CreateProgressBar(MainContainer, func() {
+		// go filetransfer.SendFile("/home/aryan/Downloads/Win11_22H2_English_x64v2.iso", progressBar, wg)
+	})
+
+	sendButton.OnTapped = func() {
+		fmt.Println("Modified behavior!")
+	}
+
+	Tabs := ui.CreateTabs(MainContainer, SendUi)
+
 	var cancel context.CancelFunc = nil
 	var ctx context.Context
 	go connections.InitiateConnection()
-	startButton.OnTapped = func() {
-		if cancel != nil {
-			cancel()
-			cancel = nil
-			DeviceContainer.RemoveAll()
-			time.Sleep(time.Millisecond * 100)
+	go server.Start()
+	go func() {
+		startButton.OnTapped = func() {
+			if cancel != nil {
+				cancel()
+				cancel = nil
+				DeviceContainer.RemoveAll()
+				//models.Reset()
+				time.Sleep(time.Millisecond * 100)
+			}
+
+			ctx, cancel = context.WithCancel(context.Background())
+			wg := &sync.WaitGroup{}
+			wg.Add(3)
+
+			go discovery.DiscoverServices(wg, DeviceContainer, ctx, cancel)
+			go discovery.RegisterServices(wg, DeviceContainer, ctx, cancel)
+			sendButton.OnTapped = func() {
+				go filetransfer.SendFile("/home/aryan/Downloads/Win11_22H2_English_x64v2.iso", progressBar, wg)
+			}
+			fmt.Println("done 1st iteration")
 		}
-
-		ctx, cancel = context.WithCancel(context.Background())
-
-		wg := &sync.WaitGroup{}
-		wg.Add(2)
-		go discovery.DiscoverServices(wg, DeviceContainer, ctx, cancel)
-		go discovery.RegisterServices(wg, DeviceContainer, ctx, cancel)
-
-	}
+	}()
 	myWindow.SetOnClosed(func() {
 		cancel()
 		os.Exit(0)
@@ -59,6 +83,7 @@ func main() {
 		case <-sigs:
 			fmt.Println("Interrupt received, exiting...")
 			cancel()
+			//
 			return
 		}
 	}()

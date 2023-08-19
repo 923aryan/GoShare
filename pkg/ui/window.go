@@ -13,7 +13,7 @@ func GetWidget() fyne.Widget {
 	return widget.NewLabel("This is screen 1")
 }
 
-func ChatScreen() *fyne.Container {
+func ChatScreen(SendUi *fyne.Container) *fyne.Container {
 	chatLog := widget.NewEntry()
 	chatLog.MultiLine = true
 
@@ -33,6 +33,7 @@ func ChatScreen() *fyne.Container {
 		widget.NewLabel("Chat Log:"),
 		scrollableChatLog,
 		container.NewHBox(userInput, sendButton),
+		SendUi,
 	)
 	go func() {
 		for {

@@ -42,7 +42,8 @@ func DiscoverServices(wg *sync.WaitGroup, content *fyne.Container, ctx context.C
 			clickable := widget.NewButton(NewLabel.Text, nil)
 			clickable.OnTapped = func() {
 				fmt.Println("clicked", entry.AddrIPv4)
-				go connections.ClientConnection(entry, notify)
+
+				go connections.ClientConnection(entry, notify, ctx)
 
 			}
 

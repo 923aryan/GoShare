@@ -11,9 +11,9 @@ import (
 func ReceiveText(conn *websocket.Conn, wg *sync.WaitGroup) {
 	go func() {
 		defer wg.Done()
+
 		for {
 			_, message, err := conn.ReadMessage()
-
 			if err != nil {
 				fmt.Println("read:", err)
 				return
@@ -21,13 +21,6 @@ func ReceiveText(conn *websocket.Conn, wg *sync.WaitGroup) {
 			models.GotMessage <- true
 			models.MessageReceived = string(message)
 			fmt.Println("recvInServer", string(message))
-
-			if err != nil {
-				fmt.Println("write", err)
-				break
-			}
 		}
-		fmt.Println("yesssss")
 	}()
-
 }

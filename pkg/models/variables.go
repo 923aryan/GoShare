@@ -16,3 +16,15 @@ var SendPressed = make(chan bool, 0)
 var GotMessage = make(chan bool, 0)
 var Message string = ""
 var MessageReceived string = ""
+var ConnectionAborted = make(chan bool, 0)
+var Entry *zeroconf.ServiceEntry
+
+func Reset() {
+	ConnectionEstablished = false
+	ConnectionFormed = make(chan bool, 0)
+	ChatLog = nil
+	SendPressed = make(chan bool, 0)
+	GotMessage = make(chan bool, 0)
+	Message = ""
+	MessageReceived = ""
+}

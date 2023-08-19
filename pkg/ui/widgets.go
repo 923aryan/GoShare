@@ -24,11 +24,18 @@ func UiLayout(startButton *widget.Button, MainContainer *fyne.Container) *fyne.C
 	return DeviceContainer
 }
 
-func CreateTabs(MainContainer *fyne.Container) *container.AppTabs {
+func CreateProgressBar(MainContainer *fyne.Container, onTap func()) (*fyne.Container, *widget.Button, *widget.ProgressBar) {
+	progressBar := widget.NewProgressBar()
+	sendButton := widget.NewButton("Send File", onTap)
+	content := container.NewVBox(sendButton, progressBar)
+	return content, sendButton, progressBar
+}
+
+func CreateTabs(MainContainer *fyne.Container, SendUi *fyne.Container) *container.AppTabs {
 
 	tabs := container.NewAppTabs(
 		container.NewTabItem("Discover PC", MainContainer),
-		container.NewTabItem("Connected", ChatScreen()),
+		container.NewTabItem("Connected", ChatScreen(SendUi)),
 	)
 	return tabs
 }

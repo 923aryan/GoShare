@@ -3,6 +3,7 @@ package connections
 import (
 	"TerminalChat/pkg/filetransfer"
 	"TerminalChat/pkg/models"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,14 +33,16 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	models.ConnectionEstablished = true
 	models.ConnectionFormed <- true
 	defer conn.Close()
-	//TODO
-
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 	go filetransfer.SendText(conn, wg)
 	go filetransfer.ReceiveText(conn, wg)
 	wg.Wait()
-
+	go func() {
+		wg.Wait()
+		<-models.ConnectionAborted
+		conn.Close()
+	}()
 }
 
 func InitiateConnection() {
@@ -47,7 +50,7 @@ func InitiateConnection() {
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
-func ClientConnection(entry *zeroconf.ServiceEntry, send chan int) {
+func ClientConnection(entry *zeroconf.ServiceEntry, send chan int, ctx context.Context) {
 
 	interrupt := make(chan os.Signal, 1)
 
@@ -60,43 +63,20 @@ func ClientConnection(entry *zeroconf.ServiceEntry, send chan int) {
 		fmt.Println("Websocket connection failed", err)
 		return
 	}
+	models.Entry = entry
 	models.ConnectionFormed <- true
 	models.ConnectionEstablished = true
+
 	defer conn.Close()
 
 	done := make(chan struct{})
 
-	// Function to read message
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
+	defer wg.Done()
 	go filetransfer.ReceiveText(conn, wg)
 	go filetransfer.SendText(conn, wg)
 	wg.Wait()
-	// go func() {
-	// 	defer close(done)
-	// 	for {
-	// 		_, message, err := conn.ReadMessage()
-	// 		if err != nil {
-	// 			fmt.Println("read:", err)
-	// 			return
-	// 		}
-	// 		fmt.Printf("recv: %s", string(message))
-	// 	}
-	// }()
-
-	// go func() {
-	// 	reader := bufio.NewReader(os.Stdin)
-	// 	for {
-	// 		fmt.Println("Enter Message: ")
-	// 		msg, _ := reader.ReadString('\n')
-	// 		msg = strings.TrimSpace(msg)
-	// 		err := conn.WriteMessage(websocket.TextMessage, []byte(msg))
-	// 		if err != nil {
-	// 			fmt.Println("write:", err)
-	// 			return
-	// 		}
-	// 	}
-	// }()
 
 	for {
 		select {
