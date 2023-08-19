@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,6 +31,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Connection established")
+	remoteAddr := conn.RemoteAddr().String()
+	ip, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		fmt.Println("cant split host from remote addr")
+		return
+	}
+	models.TcpAddr = ip
 	models.ConnectionEstablished = true
 	models.ConnectionFormed <- true
 	defer conn.Close()

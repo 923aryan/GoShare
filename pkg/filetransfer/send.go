@@ -98,7 +98,13 @@ func SendFile(filepath string, progressBar *widget.ProgressBar) {
 		return
 	}
 
-	conn, err := net.Dial("tcp", (models.Entry.AddrIPv4[0]).String()+":8108")
+	var tcpaddr string
+	if models.TcpAddr != "" {
+		tcpaddr = models.TcpAddr
+	} else {
+		tcpaddr = (models.Entry.AddrIPv4[0]).String()
+	}
+	conn, err := net.Dial("tcp", tcpaddr+":8108")
 	if err != nil {
 		fmt.Println("Dial error:", err)
 		return

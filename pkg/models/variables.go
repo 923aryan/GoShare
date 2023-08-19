@@ -19,6 +19,7 @@ var MessageReceived string = ""
 var ConnectionAborted = make(chan bool, 0)
 var Entry *zeroconf.ServiceEntry
 var SelectedPath string
+var TcpAddr string = ""
 
 func Reset() {
 	ConnectionEstablished = false
